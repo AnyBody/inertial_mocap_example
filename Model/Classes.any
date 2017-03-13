@@ -1,0 +1,20 @@
+//This is a list of the classes used for defining the model
+//Class used for defining a marker
+#include "CreateMarkerClass_BVH_AMMR_VirtualMarkers.any"  
+
+//Class used to construct a forceplate of type4
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType2AutoDetection.any"
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType2.any"
+
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType3AutoDetection.any"
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType3.any"
+
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType4AutoDetection.any"
+//#include "<ANYBODY_PATH_TOOLBOX>/Mocap/ForcePlateType4.any"
+
+//Class used for defining a which antrhopometics measurements will be part of the analysis
+#include "<ANYBODY_PATH_TOOLBOX>/Mocap/OptimizeAnthropometricsOnOffBVH.any"
+
+//#include "ConditionalContactClass.any"
+//#include "ConditionalContactFootPlaneClass.any"
+

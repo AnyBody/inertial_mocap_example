@@ -1,0 +1,110 @@
+#ifndef BVH_DownSamplingRate
+ #define BVH_DownSamplingRate 1
+#endif
+
+AnyFolder TrialSpecificData=
+{  
+
+
+AnyString NameOfFile = "SampleBVH" ;  
+
+
+AnyVec3 Gravity = {0, -9.81,0}; 
+AnyIntVar LastFrameOffset  = 2800 ;
+  AnyVar BVH_TranslationScale = 0.01;
+  AnyIntVar FrontFrameOffset = 600;
+
+  
+
+  AnyIntVar FirstFrame = 0 + FrontFrameOffset;
+  AnyIntVar LastFrame = Main.ModelSetup.BVHFileData.Header.FramesNo - LastFrameOffset ;
+  
+  //These antrhopometric data will be used as initial guess for the optimization alogorithm the optimization algoritm will allow changes to the 
+  //segment lengths
+  AnyFolder Anthropometrics =
+  {
+    AnyVar BodyHeight=1.73;  //height
+ AnyVar BodyMass=75.4;
+    
+    //REMARK 
+    //Lines below are using a CRUDE approach to match the sizes between the BVH stickfigure and the AnyBody model
+    //This approach can be refined to obtain a better macth
+    AnyVar FootLength=1.0*vnorm(Main.ModelSetup.BVHFileData.Model.Hips.RightHip.RightKnee.RightAnkle.Seg.RightToe.sRel) +vnorm(Main.ModelSetup.BVHFileData.Model.Hips.RightHip.RightKnee.RightAnkle.RightToe.Seg.End_Site.sRel);
+
+    AnyVar HeadHeight =  0.75*vnorm( Main.ModelSetup.BVHFileData.Model.Hips.Chest.Chest2.Chest3.Chest4.Neck.Head.Seg.End_Site.sRel) ;//height in neutral position from  C1HatNode to top of head
+   
+    AnyVar TrunkHeight = 1.05*(vnorm(   Main.ModelSetup.BVHFileData.Model.Hips.Seg.Chest.sRel) +
+                              vnorm(    Main.ModelSetup.BVHFileData.Model.Hips.Chest.Seg.Chest2.sRel) +
+                              vnorm(    Main.ModelSetup.BVHFileData.Model.Hips.Chest.Chest2.Seg.Chest3.sRel) +
+                              vnorm(     Main.ModelSetup.BVHFileData.Model.Hips.Chest.Chest2.Chest3.Chest4.Seg.Neck.sRel)+
+                              vnorm(Main.ModelSetup.BVHFileData.Model.Hips.Chest.Chest2.Chest3.Chest4.Neck.Seg.Head.sRel));
+                                                              
+
+    
+    
+    AnyVar LowerArmLength =  (-1)*Main.ModelSetup.BVHFileData.Data.Hips.Chest.Chest2.Chest3.Chest4.RightCollar.RightShoulder.RightElbow.RightWrist.OFFSET[0]*Main.ModelSetup.BVHFileData.TranslationScale ;
+    AnyVar UpperArmLength =(-1)*Main.ModelSetup.BVHFileData.Data.Hips.Chest.Chest2.Chest3.Chest4.RightCollar.RightShoulder.RightElbow.OFFSET[0]*Main.ModelSetup.BVHFileData.TranslationScale ;
+    AnyVar PelvisWidth =  (-2)*Main.ModelSetup.BVHFileData.Data.Hips.RightHip.OFFSET[0]*Main.ModelSetup.BVHFileData.TranslationScale;
+    AnyVar ThighLength=  (-1)*Main.ModelSetup.BVHFileData.Data.Hips.RightHip.RightKnee.OFFSET[1]*Main.ModelSetup.BVHFileData.TranslationScale;
+    AnyVar ShankLength=  (-1)*Main.ModelSetup.BVHFileData.Data.Hips.RightHip.RightKnee.RightAnkle.OFFSET[1]*Main.ModelSetup.BVHFileData.TranslationScale;
+
+    
+    AnyVar HandLength = 0.18;   //here we are using a fixed val, this can be automized like above
+    AnyVar HandBreadth = 0.085; //here we are using a fixed val, this can be automized like above
+
+  };
+  
+  //This is the initial position of the body it should only be touched it the kinematics does not work it first timestep
+  //then these variable can be used to create a better guess, otherwise leave them unchanged
+  AnyFolder InitialPositionOfBody =
+  {  
+    AnyVar PelvisRotZ = 180;
+    AnyVar PelvisRotY = 0;
+    AnyVar PelvisRotX = 0;
+
+    AnyVar PelvisThoraxExtension = 0;
+    AnyVar PelvisThoraxLateralBending = 0;
+    AnyVar PelvisThoraxRotation = 0;
+    
+    AnyFolder Right=    {  
+      AnyVar GlenohumeralFlexion = 0 ;
+      AnyVar GlenohumeralAbduction = 0;
+      AnyVar GlenohumeralExternalRotation = 0; 
+      
+      AnyVar ElbowFlexion = 0;
+      AnyVar ElbowPronation = 0;
+      
+      AnyVar WristFlexion = 0;
+      AnyVar WristAbduction = 0;
+
+      AnyVar HipFlexion = 0;
+      AnyVar HipAbduction = 0;
+      AnyVar HipExternalRotation = 0;
+      AnyVar KneeFlexion = 00;
+      AnyVar AnklePlantarFlexion = 0;
+      AnyVar SubTalarEversion = 0;
+    };
+    
+    
+    AnyFolder Left =    
+    {  
+      AnyVar GlenohumeralFlexion = 0; 
+      AnyVar GlenohumeralAbduction = 0; 
+      AnyVar GlenohumeralExternalRotation = 0; 
+      
+      AnyVar ElbowFlexion = 0;
+      AnyVar ElbowPronation = 0;
+      
+      AnyVar WristFlexion = 0;
+      AnyVar WristAbduction = 0;
+
+      AnyVar HipFlexion = 0;
+      AnyVar HipAbduction = 0;
+      AnyVar HipExternalRotation = 0;
+      AnyVar KneeFlexion = 0;
+      AnyVar AnklePlantarFlexion = 0;
+      AnyVar SubTalarEversion = 0;
+    };
+  
+  };
+};

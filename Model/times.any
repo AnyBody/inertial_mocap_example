@@ -1,0 +1,9 @@
+ 
+
+  AnyIntVar FirstFrame = Main.TrialSpecificData.FirstFrame; 
+  AnyIntVar LastFrame = Main.TrialSpecificData.LastFrame;
+
+   
+  AnyIntVar nStep =(LastFrame-FirstFrame+1);
+  AnyFloatVar tStart = FirstFrame*Main.ModelSetup.BVHFileData.Header.FrameTime;
+  AnyFloatVar tEnd = LastFrame*Main.ModelSetup.BVHFileData.Header.FrameTime;

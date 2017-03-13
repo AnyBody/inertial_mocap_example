@@ -1,0 +1,252 @@
+
+
+// Class template arguments:
+
+// MarkerName: 
+// MarkerPlacement,
+// Weight<X|Y|Z>: 
+// Opt<X|Y|Z>: 
+// ScaleMarkerPosOnOff: = "On",
+// UseAnatomicalFrame = "On", 
+// FilterCutOffFrequency: = 0,
+// FilterOrder: = 2,
+// UseC3DWeightResiduals = "Off",
+// PARAMETER_OPT_STUDY = ParameterIdentification,
+// C3D_OBJECT = C3DFileData,
+// BODY_MODEL_FOLDER = BodyModel,
+// PlaceMarkerAt = AnatomicalFrame,
+// Model = CreateVirtualTrajectories
+
+
+#class_template CreateMarkerDriverBVH (MarkerName,
+                                    MarkerPlacement,
+                                    MarkerPlacementBVH,
+                                    WeightX=1, WeightY=1, WeightZ=1,
+                                    OptX="Off", OptY = "Off",OptZ="Off",
+                                    ScaleMarkerPosOnOff = "On",
+                                    UseAnatomicalFrameOnOff="On",
+                                    FilterCutOffFrequency = 0,
+                                    FilterOrder = 2,
+                                    UseC3DWeightResiduals = "Off",
+                                    PARAMETER_OPT_STUDY = ParameterIdentification,
+                                    C3D_OBJECT = C3DFileData,
+                                    BODY_MODEL_FOLDER = BodyModel,
+                                    PlaceMarkerAt = AnatomicalFrame,
+                                    FrameTime,
+                                    Model
+                                    ){
+                                      
+  #var AnyVar ConstMarkerWeightX = WeightX;
+  #var AnyVar ConstMarkerWeightY = WeightY;
+  #var AnyVar ConstMarkerWeightZ = WeightZ;
+  AnyFunConst FunConstMarkerWeights ={ Value = {.ConstMarkerWeightX , .ConstMarkerWeightY , .ConstMarkerWeightZ };};
+  
+  
+  #if UseC3DWeightResiduals == "On"
+    // TODO: Add check that residuals are created. This not possible here since eqfun is not implemented for enum's
+//    AnyMessage check_that_residual_are_created= 
+//    {
+//      TriggerPreProcess = eqfun(Main.ModelSetup.C3D_OBJECT.ConstructWeightFunUsingResidualOnOff, Off);
+//      Type = MSG_ErrorFatal;
+//      Message = "To use C3D residual weights, please activate ConstructWeightFunUsingResidualOnOff in the C3D object";
+//    };
+    Main.ModelSetup.C3D_OBJECT.Points.Markers.MarkerName.Weight.OutputValues = 
+      {{0, ConstMarkerWeightX },
+       {0, ConstMarkerWeightY },
+       {0, ConstMarkerWeightZ}};
+    #var AnyObjectPtrVar MarkerWeightsPtr = &Main.ModelSetup.C3D_OBJECT.Points.Markers.MarkerName.Weight;
+  #else
+    #var AnyObjectPtrVar MarkerWeightsPtr = &FunConstMarkerWeights;
+  #endif
+  
+    
+  #var AnyVec3 sRelOpt ;  // Variable with obligatory initialization
+  #var AnyVec3 sRelOnBVH ;  // Variable with obligatory initialization
+  #var AnyVec3 sRelOptDelta = {0, 0, 0};
+  
+  #if OptX =="Off" & OptY == "Off" & OptZ == "Off"
+        AnyVec3 sRelOptEdit = DesignVar(sRelOptDelta); //make it a design var ! because it will not be otherwise
+  #else
+        AnyVec3 sRelOptEdit = sRelOptDelta; 
+  #endif
+  
+  
+  AnyFolder &Macro=  Main.ModelSetup.Macros ;
+  Macro={
+    AnyStringVar Set##MarkerName = ("classoperation "+  CompleteNameOf(.sRelOptEdit) + " " + strquote("Set Value") +  strformat ("\n")+ "classoperation Main " + strquote("Update Values") + strformat ("\n"));
+  };
+
+  
+  
+  AnyFolder &MarkerInsertionNode = Main.HumanModel.BODY_MODEL_FOLDER.MarkerPlacement;
+  MarkerInsertionNode = {
+    
+    
+   AnyRefNode MarkerName={
+      
+      #if UseAnatomicalFrameOnOff == "On"
+        #if ScaleMarkerPosOnOff == "On"
+          AnyVec3 MarkerOffset = (.GeomScale(..sRelOpt) + ..sRelOptEdit )*.AnatomicalFrame.ARel' ;
+        #else
+          AnyVec3 MarkerOffset = (..sRelOpt + ..sRelOptEdit )*.AnatomicalFrame.ARel' ;
+        #endif
+        sRel = .PlaceMarkerAt.sRel + MarkerOffset;
+        ARel= .AnatomicalFrame.ARel;
+
+      #else
+
+       //bvh markers are not suppose to scale...always needs to be relative to joint or similar point and the dimension needs to match stickfigure dim
+       sRel = .PlaceMarkerAt.sRel + ..sRelOpt;
+    #endif
+  
+
+    
+      
+      AnyRefNode Arrows = {  
+          AnyDrawVector X =   {
+            AnyInt is_optimized = eqfun(OptX,"On");
+            Vec = {size,0, 0};            
+            #include "DrawVector.any"
+            #var Text="X";
+          };
+          AnyDrawVector Y =  {
+            AnyInt is_optimized = eqfun(OptY,"On");
+            Vec = {0,size, 0};
+            #include "DrawVector.any"
+            #var Text="Y";
+          };
+          AnyDrawVector Z =  {
+            AnyInt is_optimized = eqfun(OptZ,"On");
+            Vec = {0,0,size};
+            #include "DrawVector.any"
+            #var Text="Z";
+          };
+      };//Arrows    
+    }; //MarkerName 
+  };// InsertionNode
+  
+  
+  
+  
+  
+  
+  //Create the marker on the BVH stick figure
+  AnyFolder &MarkerInsertionNodeBVH = MarkerPlacementBVH;
+  MarkerInsertionNodeBVH = {
+    AnyRefNode MarkerName = {
+      sRel = ..sRelOnBVH;
+      AnyDrawNode drw_node = {
+        RGB = {0, 1, 0};
+        ScaleXYZ = 0.01*{1, 1, 1};        
+      };
+    };
+  };// InsertionNode
+
+
+ //Create a measure to from global to the marker on stick figure 
+ Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput ={
+ 
+   
+   AnyFolder MarkerName ={
+        AnyOutputFun Output_X ={          Val =.lin.Pos[0];        };
+        AnyOutputFun Output_Y ={          Val =.lin.Pos[1];        };
+        AnyOutputFun Output_Z ={          Val =.lin.Pos[2];        };
+        AnyOutputFun Output_T ={          Val =.lin.t;        };
+
+    AnyKinLinear  lin  ={
+      AnyRefNode &ref=Main.ModelSetup.MarkerName.MarkerInsertionNodeBVH.MarkerName ;
+      Ref=-1;
+    };
+
+    };   
+  };
+//  
+
+Main.Studies.outputfun_study = {
+
+    AnyVector MarkerName##_Val_X = iffun(eqfun(SizesOf(Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_X())[0],1),0*farr(0.0,1.0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep),Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_X());
+    AnyVector MarkerName##_Val_Y = iffun(eqfun(SizesOf(Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_Y())[0],1),0*farr(0.0,1.0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep),Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_Y());
+    AnyVector MarkerName##_Val_Z = iffun(eqfun(SizesOf(Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_Z())[0],1),0*farr(0.0,1.0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep),Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_Z());
+    AnyVector MarkerName##_Val_T = iffun(eqfun(SizesOf(Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_T())[0],1),0*farr(0.0,1.0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep),Main.Studies.CreateMarkerTrajectoriesStudy.MarkerOutput.MarkerName.Output_T());
+};
+ 
+
+  
+  
+  
+  
+     
+
+  
+
+     
+      AnyFunInterpol InterpolFun ={
+           Type=Bspline;
+     
+      AnyVector val_X =DesignVar(iarr(0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep-1)*0);
+      AnyVector val_Y =DesignVar(iarr(0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep-1)*0);
+      AnyVector val_Z =DesignVar(iarr(0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep-1)*0);
+      AnyVector val_T=DesignVar(iarr(0,Main.Studies.CreateMarkerTrajectoriesStudy.nStep-1));
+      Data= DesignVar({val_X,val_Y,val_Z});
+      T= DesignVar(val_T)  ;
+   
+         
+      };
+
+
+      //create a drivers using the data from the virtual maker position
+      //this requires that the stickfigure has been kin analysis first
+      AnyKinDriverMarker Driver = {
+                
+        AnyDrawKinMeasure Draw = {
+          #var Visible = On;
+          #var Opacity = 1;
+          #var Label = Off;
+          #var Size = 0.01;
+          #var Line = Off;
+        };
+        Linear.Ref=0;
+        AnyRefFrame &MarkerRef = Main.HumanModel.BODY_MODEL_FOLDER.MarkerPlacement.MarkerName;
+        
+        
+        #if FilterCutOffFrequency > 0
+   	  /// A lowpass butterworth filter
+   	    AnyFunButterworthFilter LowPassFilter = {
+   	     	#var FilterForwardBackwardOnOff = On;
+   	     	#var AutomaticInitialConditionOnOff = On;
+   	     	N = FilterOrder;
+             AnyVar SampleFreq=1/FrameTime;
+             W = {1/(SampleFreq*0.5)*(FilterCutOffFrequency) };
+    	      Type = LowPass;
+   	    };
+  	  
+          // Filter the data
+          AnyMatrix FilteredPos = LowPassFilter(.InterpolFun.Data);
+          
+          /// Interpolation function of the lowpass filtered data
+          AnyFunInterpol FilteredPosInterpol = {
+           #var Type = Bspline;
+           BsplineOrder =4;
+
+            T = ..InterpolFun.T;
+            Data = .FilteredPos;
+          };
+          
+          AnyDrawSphere unfilteredTest ={
+            RGB={1,0,1};
+            ScaleXYZ={1,1,1}*0.01;
+            Position = ..InterpolFun(.t);
+          };
+          
+        #else
+          AnyParamFun &InterpolRef = .InterpolFun;
+        #endif
+        
+        WeightFun={.MarkerWeightsPtr};
+      };
+
+  
+  
+  
+  
+}; // End of InsertSegmentClass

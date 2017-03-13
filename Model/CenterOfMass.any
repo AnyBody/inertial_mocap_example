@@ -1,0 +1,36 @@
+AnyFolder CenterOfMass = 
+{
+  AnyKinCoM Measure = 
+  {
+    AnyFolder& ref = Main.HumanModel;
+  };
+  
+  AnyDrawSphere Drw = 
+  {
+    Opacity = 0.5;
+    RGB = {0, 1, 1};
+    ScaleXYZ = 0.1*{1, 1, 1};
+    Position = .Measure.Pos;
+    GlobalCoord = On;
+  };
+  
+  
+  
+  AnyDrawLine ACC_display ={
+    AnyFixedRefFrame &ref2=..EnvironmentModel.GlobalRef;
+    p0=.Measure.Pos;
+    p1=p0+0.2*(-.Measure.Acc+..Gravity);
+    Line.Thickness=0.01;
+    Line.RGB={0,0,1};
+  };
+  
+//  AnyDrawLine ACC_display_reverse ={
+//    AnyFixedRefFrame &ref2=..EnvironmentModel.GlobalRef;
+//    p0=.Measure.Pos;
+//    p1=(p0+-0.2*(-.Measure.Acc+..Gravity));
+//    Line.Thickness=0.01;
+//    Line.RGB={0,0,1};
+//
+//  };
+  
+};

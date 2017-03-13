@@ -1,0 +1,106 @@
+Main = 
+{
+  #if MotionAndParameterOptimizationModel == 1
+  AnyOperationMacro RunMotionAndParameterOptimizationSequence  = 
+  {  
+      //FileName = "Sequence1.anymcr";    
+    MacroStr = 
+    ({
+      "operation Main.Studies.ParameterIdentification.ParameterOptimization",
+      "run", 
+      "classoperation Main.Studies.ParameterIdentification" + " " + strquote("Save design") + " --file=" + strformat("\x22") + "../Input/" + Main.ModelSetup.BVHFileData.NameOfFile +"-"+"OptimizedParameters.txt" + strformat("\x22"),
+      "operation Main.Studies.MotionOptimization.Kinematics",
+      "run"
+    });      
+  };  
+  #endif
+  
+ 
+
+ AnyFolder &ref=HumanModel;
+    
+    ref=
+    { 
+      AnyFolder &Mannequin=Main.Studies.MotionOptimization.Mannequin;
+      
+      #if WithArms
+        #include  "BodyPartsSetupNoMuscles.any"
+      #else
+        #include  "BodyPartsSetupNoMusclesNoArms.any"
+      #endif
+    };
+  
+    #include "HumanModel.any"
+  }; //main        
+         
+  
+  
+ 
+  
+  AnyBodyStudy MotionOptimization =   {
+     AnyFolder &MarkerDrivers =Main.ModelSetup;
+ 
+     AnyFolder &BVHData=..ModelSetup.BVHFileData ;
+     AnyFolder &BodyModel = Main.HumanModel.BodyModel;
+
+     #include "Mannequin.any"  
+       
+     //Environment around the human
+     AnyFolder EnvironmentModel = {
+       AnyFixedRefFrame GlobalRef =  {
+         Origin={0,0,0};
+         AnyDrawRefFrame drw=  {
+           ScaleXYZ=0.4*{1,1,1};
+         };
+      };  
+      //Model of the floor and force plates this is where the force plates are defined        
+      AnyFolder &BodyModelRef=.BodyModel;        
+       
+      };
+            
+      //Connection between environment and the human    
+      AnyFolder ModelEnvironmentConnection = 
+      {
+        AnyFolder Drivers =
+        {
+          // This ExtraDrivers.any file may be modified according to your real use of marker set
+          #include "ExtraDrivers.any"
+          // Aliases for convenient referencing
+          AnyFolder &JntPos=..Mannequin.Posture;  
+          AnyFolder &JntVel=..Mannequin.PostureVel;  
+        };
+        
+      
+      };
+      
+      #include "JointAngleOutputs.any"
+      #include "UndefineBodyPartSetup.any"
+      
+      Gravity = Main.ModelSetup.Gravity;      
+      tStart = Main.ModelSetup.tStart+2*Kinematics.ApproxVelAccPerturb; 
+      tEnd = Main.ModelSetup.tEnd-2*Kinematics.ApproxVelAccPerturb;
+      
+      #if MotionAndParameterOptimizationModel == 1
+       // nStep = floor(Main.ModelSetup.nStep/BVH_DownSamplingRate); 
+        nStep = Main.ModelSetup.nStep; 
+
+      #endif
+      
+      
+      
+      InitialConditions.SolverType = KinSolOverDeterminate;
+      InitialConditions.PosAnalysisOnlyOnOff=On;
+      InitialConditions.KinematicTol=1e-3;
+      
+      Kinematics.SolverType = KinSolOverDeterminate;
+      Kinematics.PosAnalysisOnlyOnOff=On; //only run the position analysis
+      Kinematics.MaxIteration = 50000;
+     // Kinematics.KinematicTol=1e-3;
+      Kinematics.Relax = 1/4;
+    };
+    
+   
+    
+    
+
+    

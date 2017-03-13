@@ -1,0 +1,39 @@
+       
+AnyBodyStudy CreateMarkerTrajectoriesStudy = {  
+  #include "Mannequin.any"  
+ 
+  AnyFolder MarkerOutput ={};
+  
+  AnyFolder &BVHData=..ModelSetup.BVHFileData ;
+  
+  //Environment around the human
+  AnyFolder EnvironmentModel =  {
+    AnyFixedRefFrame GlobalRef =   {
+      Origin={0,0,0};
+      AnyDrawRefFrame drw= {
+        ScaleXYZ=0.4*{1,1,1};
+      };
+    };  
+  };
+ 
+  
+  Gravity = Main.ModelSetup.Gravity;      
+  nStep =(LastFrame-FirstFrame+1);
+  
+  
+  tStart = FirstFrame*Main.ModelSetup.BVHFileData.Header.FrameTime;
+  tEnd = LastFrame*Main.ModelSetup.BVHFileData.Header.FrameTime-2*Kinematics.ApproxVelAccPerturb;
+  
+  AnyIntVar FirstFrame = 0 ;
+  AnyIntVar LastFrame = Main.ModelSetup.BVHFileData.Header.FramesNo;
+  
+  
+  
+  
+  
+  
+};
+
+
+
+

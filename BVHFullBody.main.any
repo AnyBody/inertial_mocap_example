@@ -1,0 +1,111 @@
+#include "../libdef.any"
+
+#define WithArms 1
+#define RightArm 1
+#define LeftArm 1
+
+#define WithLegs 1
+#define RightLeg 1
+#define LeftLeg 1
+
+
+#define PelvisRotMat
+
+
+
+//**************************************************
+//Set this to 1 if you want to run the Motion and Parameter Optimization identification
+#ifndef MotionAndParameterOptimizationModel
+#define MotionAndParameterOptimizationModel 0
+#endif
+
+//Set this to 1 if you want to run the Inverse Dynamic Analysis
+#ifndef InverseDynamicModel
+#define InverseDynamicModel 1
+#endif
+//**************************************************
+
+
+#include "Model/Classes.any"
+
+#include"GRFPrediction\FootPlateConditionalContact.any"
+
+#define BVH_DownSamplingRate 8
+
+Main = {
+  
+  #include "Model/ModelSetup.any" 
+  #include "Model/TrialSpecificData.any" 
+  
+  AnyFolder EnvironmentModel = {
+    AnyFixedRefFrame GlobalRef =     {       };
+  };
+  
+  AnyFolder Studies =  {
+    
+    #include "Model/CreateMarkerTrajectories.any"
+    
+    //Sequence of operation used to transfer values 
+    AnyOperationMacro TransferValuesSequence =   {  
+      MacroStr =
+      ({
+        "operation Main.Studies.SetValueOperations",
+        "run",
+        "classoperation Main" + strformat("\x22")+ "Update Values" + strformat("\x22")
+      });
+      
+    };
+    
+    
+    #if (MotionAndParameterOptimizationModel  ) == 1
+    #include "Model/Kinematics.any"
+    
+    MotionOptimization =     {
+      #include "Model\CenterOfMass.any"
+    };
+    
+    #endif 
+    
+    #if InverseDynamicModel
+    #include "Model/InverseDynamics.any"
+    
+    Main.Studies.InverseDynamicStudy.ModelEnvironmentConnection=    {
+      #include"GRFPrediction/GRF_example.any"
+      #include"GRFPrediction/WeakResidualsCoM.any"
+    };
+    
+    
+    
+    InverseDynamicStudy =     {
+      #include "Model\CenterOfMass.any"
+    };
+    #endif 
+    
+    
+    
+    
+    //Setvalue operations
+    AnyOperationSequence SetValueOperations = {
+      AnyOperation& update_outputfuns = .outputfun_study.InitialConditions;
+      AnyOperationSetValue copy = {
+        Source = ObjSearch("..outputfun_study.*Val_*");
+        Target = ObjSearch("Main.ModelSetup.*.InterpolFun.val_*");
+      };
+    };
+    
+    
+    
+    //Dummy study used for transfer of values
+    AnyKinStudy outputfun_study = {
+      nStep = 1;
+      Gravity = {0.0, -9.81, 0.0};
+      
+    };
+    
+    
+    
+  };  //Studies
+  
+}; //Main
+
+

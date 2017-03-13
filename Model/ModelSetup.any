@@ -1,0 +1,34 @@
+//This file contains the marker toplogy of the data set it links free floating markers with the markers on the human 
+AnyFolder ModelSetup ={
+  
+  AnyFolder ParameterIdentification ={};
+  AnyFolder VirtualMarkerMeasures={ };
+  AnyFolder TransferPositionsToData ={
+    
+
+  };
+
+  
+  AnyVector Gravity = Main.TrialSpecificData.Gravity;
+
+  AnyInputBVH BVHFileData = 
+  {
+   #include "bvh.any"
+  };
+ 
+
+  
+   //Ne need to change anything here
+   #include "times.any"  
+   
+        
+   #include "markers.any"
+  
+  
+  AnyFolder  Macros={};
+  
+ 
+};
+
+ #include "DrawSettings.any"
+

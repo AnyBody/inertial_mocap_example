@@ -1,0 +1,22 @@
+ AnyString PrefixStr=""; //if the dataset makes use of a prefix name which goes in front of all markers and processed datanames write it here
+
+
+AnyString NameOfFile =Main.TrialSpecificData.NameOfFile; //Write the name of the file here
+FileName = "../Input/" + NameOfFile + ".bvh"; //add the extension to the filename
+//    ConstructModelOnOff = On; //If this is set to on it will display the markers but slow down the analysis a lot....
+
+ModelDrawRGBs={{0.5,0.5,0.5},{0.2,0.1,0.3},{1,1,1}};
+
+ModelDrawOnOff = On;
+InitialPos_FrameNo=Main.TrialSpecificData.FirstFrame;
+ModelDrawScale =0.1;
+TranslationScale = Main.TrialSpecificData.BVH_TranslationScale; 
+RotationScale = pi/180.0;
+TranslationalDataFilterIndex = -1;//no filter becuase neg number
+RotationalDataFilterIndex = -1; //no filter becuase neg number
+
+Rotation2PiFixOnOff = On;
+Rotation1PiFixOnOff = On;
+
+AnyMat33 Rotation =RotMat(pi*0.5,x)*RotMat(pi*0.5,y);
+

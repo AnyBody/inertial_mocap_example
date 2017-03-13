@@ -1,0 +1,197 @@
+Main.Studies.InverseDynamicStudy = {
+  MechObjectExclude = ObjSearch("ModelEnvironmentConnection.JointsAndDrivers.JntDriverTrunk.Reaction" );
+};  
+
+AnyFolder Residuals = {
+  
+  AnyFolder &Segment = ..BodyModel.Trunk.SegmentsLumbar.PelvisSeg;
+  
+  AnyFolder Measures = {
+    
+    AnyKinCoM CoMMeasure =  {
+      AnyFolder& ref = Main.HumanModel;
+    };
+    
+    AnySeg CoM={
+      Mass=0;
+      Jii={0,0,0};
+    };
+    
+    AnyKinLinear LinCoM ={
+      AnySeg &ref=.CoM;
+    };
+    
+    AnyKinEqSimpleDriver CoMRotDriver ={
+      
+      AnyKinRotational RotCoM ={
+        AnyFixedRefFrame &ref=Main.EnvironmentModel.GlobalRef;
+        AnySeg &ref1=..CoM;
+        Type=RotAxesAngles;
+      };
+      DriverPos={0,0,0};
+      DriverVel ={0,0,0};
+    };
+    
+    AnyKinEqSimpleDriver LinCoMCon ={
+      
+      AnyKinMeasureLinComb LinComb ={
+        AnyKinLinear &ref1=..LinCoM;
+        AnyKinCoM &ref2=..CoMMeasure ;
+        Coef ={{1,0,0,-1,0,0},{0,1,0,0,-1,0},{0,0,1,0,0,-1}};
+        OutDim =3;
+      }    ;
+      DriverPos ={0,0,0};
+      DriverVel={0,0,0};
+      
+      
+      
+      
+    };
+    
+    
+    
+    AnyKinMeasureOrg PosX ={
+      
+      AnyKinMeasure  &rec=.LinCoM; 
+      
+      MeasureOrganizer={0};
+    };
+    AnyKinMeasureOrg PosY ={
+      AnyKinMeasure  &ref=.LinCoM;
+      MeasureOrganizer={1};
+    };
+    AnyKinMeasureOrg PosZ ={
+      AnyKinMeasure  &ref=.LinCoM;
+      MeasureOrganizer={2};
+    };    
+    AnyKinMeasureOrg RotX ={
+      AnyKinRotational rot ={
+        AnySeg &ref2 = ...Segment;
+        Type=RotAxesAngles;
+      };
+      MeasureOrganizer={2};
+    };
+    AnyKinMeasureOrg RotY ={
+      AnyKinRotational &ref=.RotX.rot;
+      MeasureOrganizer={1};
+    };
+    AnyKinMeasureOrg RotZ ={
+      AnyKinRotational &ref=.RotX.rot;
+      MeasureOrganizer={0};
+    };
+  };
+  
+  AnyFolder WeakGeneralMuscles = 
+  {
+    AnyMuscleModel MusMoldel1 =
+    {
+      F0 = 5;
+    };
+    AnyMuscleModel MusMoldel2 =
+    {
+      F0 = 0.5;
+    };
+    // For PosX
+    AnyGeneralMuscle PosX_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosX;
+      AnyMuscleModel & mus = .MusMoldel1;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle PosX_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosX;
+      AnyMuscleModel & mus = .MusMoldel1;
+      ForceDirection = -1;
+    };   
+    // For PosY
+    AnyGeneralMuscle PosY_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosY;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle PosY_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosY;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = -1;
+    };    
+    // For PosZ
+    AnyGeneralMuscle PosZ_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosZ;
+      AnyMuscleModel & mus = .MusMoldel1;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle PosZ_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.PosZ;
+      AnyMuscleModel & mus = .MusMoldel1;
+      ForceDirection = -1;
+    };    
+    // For RotX
+    AnyGeneralMuscle RotX_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotX;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle RotX_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotX;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = -1;
+    };    
+    // For RotY
+    AnyGeneralMuscle RotY_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotY;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle RotY_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotY;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = -1;
+    };    
+    // For RotZ
+    AnyGeneralMuscle RotZ_Push=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotZ;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = 1;
+    };
+    AnyGeneralMuscle RotZ_Pull=
+    {
+      AnyKinMeasureOrg &ref= ..Measures.RotZ;
+      AnyMuscleModel & mus = .MusMoldel2;
+      ForceDirection = -1;
+    };
+  };
+  AnyVar PosX_Force = WeakGeneralMuscles.PosX_Push.Fout[0] + WeakGeneralMuscles.PosX_Pull.Fout[0];
+  AnyVar PosY_Force = WeakGeneralMuscles.PosY_Push.Fout[0] + WeakGeneralMuscles.PosY_Pull.Fout[0];
+  AnyVar PosZ_Force = WeakGeneralMuscles.PosZ_Push.Fout[0] + WeakGeneralMuscles.PosZ_Pull.Fout[0];
+  AnyVar RotX_Torque = WeakGeneralMuscles.RotX_Push.Fout[0] + WeakGeneralMuscles.RotX_Pull.Fout[0];
+  AnyVar RotY_Torque = WeakGeneralMuscles.RotY_Push.Fout[0] + WeakGeneralMuscles.RotY_Pull.Fout[0];
+  AnyVar RotZ_Torque = WeakGeneralMuscles.RotZ_Push.Fout[0] + WeakGeneralMuscles.RotZ_Pull.Fout[0];
+  
+  
+  
+  AnyDrawLine residual_display ={
+    AnyFixedRefFrame &ref2=Main.EnvironmentModel.GlobalRef;
+    p0=.Measures.LinCoM.Pos;
+    AnyVec3 F={.PosX_Force,.PosY_Force,.PosZ_Force};
+    AnyVec3 AccResidual=F/.Measures.CoMMeasure.MassTotal;
+    p1=p0-0.2*AccResidual;
+    Line.Thickness=0.01;
+    Line.RGB ={1,0,0};
+
+  };
+  
+ 
+  
+  
+};
+
