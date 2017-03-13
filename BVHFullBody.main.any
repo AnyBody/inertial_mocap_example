@@ -60,9 +60,7 @@ Main = {
     #if (MotionAndParameterOptimizationModel  ) == 1
     #include "Model/Kinematics.any"
     
-    MotionOptimization =     {
-      #include "Model\CenterOfMass.any"
-    };
+   
     
     #endif 
     
@@ -76,9 +74,7 @@ Main = {
     
     
     
-    InverseDynamicStudy =     {
-      #include "Model\CenterOfMass.any"
-    };
+   
     #endif 
     
     

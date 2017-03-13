@@ -179,19 +179,6 @@ AnyFolder Residuals = {
   
   
   
-  AnyDrawLine residual_display ={
-    AnyFixedRefFrame &ref2=Main.EnvironmentModel.GlobalRef;
-    p0=.Measures.LinCoM.Pos;
-    AnyVec3 F={.PosX_Force,.PosY_Force,.PosZ_Force};
-    AnyVec3 AccResidual=F/.Measures.CoMMeasure.MassTotal;
-    p1=p0-0.2*AccResidual;
-    Line.Thickness=0.01;
-    Line.RGB ={1,0,0};
-
-  };
-  
- 
-  
   
 };
 

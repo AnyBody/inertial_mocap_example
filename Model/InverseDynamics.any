@@ -17,60 +17,57 @@ Main =
   };
   
   //This study is used for running the inverse dynamic analysis of the optimized motion
-    //***********************************************************************************
-    HumanModel=
-    {
-      AnyFolder &Mannequin=Main.Studies.InverseDynamicStudy.Mannequin;
-      #if WithArms
-        #include  "BodyPartsSetup.any"
-      #else
-        #include  "BodyPartsSetupNoArms.any"
-      #endif
-    };
-    
-    #include "HumanModel.any"
-
+  //***********************************************************************************
+  HumanModel=
+  {
+    AnyFolder &Mannequin=Main.Studies.InverseDynamicStudy.Mannequin;
+    #if WithArms
+    #include  "BodyPartsSetup.any"
+    #else
+    #include  "BodyPartsSetupNoArms.any"
+    #endif
+  };
   
-  
+  #include "HumanModel.any"
 };
+
+
+AnyBodyStudy InverseDynamicStudy = 
+{
   
+  //AnyFolder &ParameterIdentification=Main.ModelSetup.ParameterIdentification;
+  
+  //AnyFolder &BVHData=..ModelSetup.BVHFileData ;
+  AnyFolder &BodyModel=Main.HumanModel.BodyModel;
+  #include "Mannequin.any" 
+  
+  //Environment around the human
+  AnyFolder EnvironmentModel =
+  {  
+    AnyFolder DrawC3DMarkers = {};
+    //Model of the floor and force plates this is where the force plates are defined
+    AnyFolder &BodyModelRef=.BodyModel;
+    //This environment file makes use of automatic detecteion of which foot are incontact with which plate 
+    #include "EnvironmentAutoDetection.any"
     
-    AnyBodyStudy InverseDynamicStudy = 
-    {
-      
-      //AnyFolder &ParameterIdentification=Main.ModelSetup.ParameterIdentification;
+  };
+  
+  //Connection between environment and the human    
+  AnyFolder ModelEnvironmentConnection = {
+    //Drivers for the model
+    #include "JointsAndDriversOptimized.any"      
+  };
+  
+  Gravity = Main.ModelSetup.Gravity;
+  tStart = Main.ModelSetup.tStart + 2*Kinematics.ApproxVelAccPerturb; 
+  tEnd = Main.ModelSetup.tEnd - 2*Kinematics.ApproxVelAccPerturb;
+  nStep = floor(Main.ModelSetup.nStep/BVH_DownSamplingRate);
+  
+  Kinematics.MaxIteration = 50000;
+  
+  Kinematics.Relax = 1/4;
+  
+  InverseDynamics.Criterion.UpperBoundOnOff=Off;
+};
 
-      //AnyFolder &BVHData=..ModelSetup.BVHFileData ;
-      AnyFolder &BodyModel=Main.HumanModel.BodyModel;
-      #include "Mannequin.any" 
-      
-      //Environment around the human
-      AnyFolder EnvironmentModel =
-      {  
-        AnyFolder DrawC3DMarkers = {};
-        //Model of the floor and force plates this is where the force plates are defined
-        AnyFolder &BodyModelRef=.BodyModel;
-         //This environment file makes use of automatic detecteion of which foot are incontact with which plate 
-        #include "EnvironmentAutoDetection.any"
-       
-      };
-      
-      //Connection between environment and the human    
-      AnyFolder ModelEnvironmentConnection = {
-        //Drivers for the model
-        #include "JointsAndDriversOptimized.any"      
-      };
-            
-      Gravity = Main.ModelSetup.Gravity;
-      tStart = Main.ModelSetup.tStart + 2*Kinematics.ApproxVelAccPerturb; 
-      tEnd = Main.ModelSetup.tEnd - 2*Kinematics.ApproxVelAccPerturb;
-      nStep = floor(Main.ModelSetup.nStep/BVH_DownSamplingRate);
-      
-      Kinematics.MaxIteration = 50000;
 
-      Kinematics.Relax = 1/4;
-      
-      InverseDynamics.Criterion.UpperBoundOnOff=Off;
-    };
-    
-    
