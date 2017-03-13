@@ -1,23 +1,5 @@
-//#include "<ANYBODY_PATH_EXEDIR>/anybody.any"
-
-#ifdef ANYBODY_APPLICATION_LIBRARY_NAME
-  #undef ANYBODY_APPLICATION_LIBRARY_NAME 
+#ifndef AMMR_PATH
+  #include "<ANYBODY_PATH_INSTALLDIR>/AMMR/Application/libdef.any"
+#else
+  #include "<AMMR_PATH>/Application/libdef.any"
 #endif
-#define ANYBODY_APPLICATION_LIBRARY_NAME "AMMR Public Applications"
-
-#ifndef ANYBODY_PATH_BODY
-  #path ANYBODY_PATH_BODY "C:\Users\st\AnyBodyTech\AnyScript\Official_Releases\AMMR.v1.6.3-MyDemo/Body/AAUHuman/"
-#endif
-
-
-#ifndef ANYBODY_PATH_OUTPUT
-  #ifdef ANYBODY_PATH_MAINFILEDIR
-    #path ANYBODY_PATH_OUTPUT "<ANYBODY_PATH_MAINFILEDIR>/Output/"
-  #endif
-#endif
-
-#ifndef ANYBODY_PATH_TOOLBOX
-  #path ANYBODY_PATH_TOOLBOX "<ANYBODY_PATH_BODY>ToolBox/"
-#endif
-
-#include "<ANYBODY_PATH_BODY>/HumanModel.defs.any"
